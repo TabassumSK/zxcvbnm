@@ -1,4 +1,8 @@
-"""FastAPI app: thin HTTP layer over service.py."""
+# """FastAPI app: thin HTTP layer over service.py."""
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 from datetime import date
 
 from fastapi import FastAPI, HTTPException, Query
@@ -56,3 +60,14 @@ def get_error_distribution(
 def get_horizon(bucket_hours: int = Query(6, ge=1, le=24)):
     """Accuracy of all forecasts by lead time (how far ahead they were published)."""
     return service.horizon_view(bucket_hours)
+
+
+
+# Serve the built React app when present (inside Docker it is copied to ./static)
+STATIC = Path(__file__).parent / "static"
+if (STATIC / "index.html").exists():
+    app.mount("/assets", StaticFiles(directory=STATIC / "assets"), name="assets")
+
+    @app.get("/", include_in_schema=False)
+    def index():
+        return FileResponse(STATIC / "index.html")
