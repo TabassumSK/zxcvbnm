@@ -9,8 +9,6 @@ Scope: national-level wind generation from Elexon only (FUELHH actuals, WINDFOR 
 
 - **Live app:** `https://zxcvbnm-179y.onrender.com/`
 
-> **AI tools disclosure:** This project was built with the assistance of an AI tool (Claude, by Anthropic) for planning, code generation, and documentation. I reviewed, ran, and tested the code myself.
-
 ---
 
 ## 1. Quick start
@@ -227,22 +225,28 @@ Findings:
 
 ## 8. Development practices
 
-- **Tests on the risky logic:** deadline calculation (including British Summer Time), inclusion of a forecast published exactly at the deadline, exclusion of later forecasts, hourly-to-half-hourly handling, error and metric calculation, response shapes and consistency. Run with `pytest` in `backend/`.
-- **Separation of concerns:** logic, service and HTTP layers are independent.
-- **Explicit, configurable assumptions** documented above.
-- **Input validation** at the API boundary.
-- **Reproducible builds:** multi-stage Dockerfile, dependency files, `.gitignore` and `.dockerignore`.
-- **Single source for API calls** in the frontend (`api.js`).
-- **AI use disclosed** (see top of this file).
+- **Tests on the risky logic:** deadline calculation (including British Summer Time), forecast selection (a forecast published exactly at the deadline is allowed, later ones are excluded), hourly-to-half-hourly handling, and metric calculation. Run with `pytest` in `backend/`.
+- **Separation of concerns:** logic (`analysis.py`), service (`service.py`) and HTTP (`main.py`) layers are independent.
+- **Reproducible builds:** multi-stage Dockerfile and dependency files.
 
 ---
 
 ## 9. Deployment
 
-`<ADD STEPS AND LIVE LINK ONCE DEPLOYED>`
+Live at  https://zxcvbnm-179y.onrender.com/  (Render free tier, one Docker web service).
+
+**Steps:**
+1. Push the repo to GitHub.
+2. On Render: New > Web Service > select the repo.
+3. Choose Docker as the language and the Free instance type.
+4. Set the health check path to `/api/health`, then click Create Web Service.
+
+The free tier sleeps after about 15 minutes idle, so the first load may take up to a minute.
 
 The app is a single container listening on `$PORT` (default 8000), so it can run on any container platform.
 
 ## 10. Data source
 
-Elexon BMRS / Insights API: datasets FUELHH (fuel type `WIND`) and WINDFOR.
+Elexon BMRS (Insights) API, national-level wind only:
+- **Actuals:** FUELHH stream, `fuelType` = `WIND` (half-hourly `startTime`, `generation` in MW).
+- **Forecasts:** WINDFOR stream (`startTime`, `publishTime`, `generation` in MW).
