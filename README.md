@@ -91,23 +91,46 @@ python ingest.py
 ## 3. Architecture
 
 ```
- Elexon Insights API  (FUELHH, WINDFOR)
-         |   one-time download
-         v
-     ingest.py  -->  backend/data/*.csv   (committed snapshot)
-                              |
-     +------------------------+---------------------------+
-     |  Python backend (FastAPI)                           |
-     |   analysis.py  pure pandas logic (cutoff, select,   |
-     |                metrics)                             |
-     |   service.py   JSON builders + caching              |
-     |   main.py      HTTP routes + validation             |
-     +------------------------+---------------------------+
-                              |  JSON over /api/*
-                              v
-              React + Recharts dashboard (Vite)
+   
+                  Elexon Insights API
+                   (FUELHH, WINDFOR)
+                          |
+                          | Data ingestion
+                          v
+                      ingest.py
+                          |
+                          v
+                  backend/data/*.csv
+                          |
+                          v
+        +--------------------------------------+
+        |         Python Backend (FastAPI)     |
+        |                                      |
+        |  analysis.py                         |
+        |  - Cutoff logic                      |
+        |  - Forecast selection                |
+        |  - Accuracy metrics (Pandas)         |
+        |                                      |
+        |  service.py                          |
+        |  - JSON response builders            |
+        |  - Caching                           |
+        |                                      |
+        |  main.py                             |
+        |  - HTTP API routes                   |
+        |  - Request validation                |
+        +--------------------------------------+
+                          |
+                          | JSON over /api/*
+                          v
+        +--------------------------------------+
+        |       React + Recharts Dashboard     |
+        |              (Vite)                  |
+        +--------------------------------------+
 
-   Docker: one image; FastAPI also serves the built React files
+        Docker: Single image containing both
+        the FastAPI backend and the built React
+        frontend. FastAPI serves the frontend.
+
 ```
 
 **Key decision, snapshot data:** January 2026 is historical and does not change, so the data is downloaded once and shipped with the app. The deployed app does not depend on Elexon's availability or rate limits, responses are fast, and the demo is reliable. Re-running `ingest.py` refreshes it.
